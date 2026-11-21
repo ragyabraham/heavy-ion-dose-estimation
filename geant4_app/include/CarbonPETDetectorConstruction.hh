@@ -12,6 +12,7 @@ public:
   CarbonPETDetectorConstruction();
   virtual ~CarbonPETDetectorConstruction();
   virtual G4VPhysicalVolume* Construct();
+  virtual void ConstructSDandField();
 
   void SetTargetSize(G4double x, G4double y, G4double z);
   void SetVoxelSize(G4double doseVoxel, G4double activityVoxel);

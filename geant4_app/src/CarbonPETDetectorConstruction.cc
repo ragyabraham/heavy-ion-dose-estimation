@@ -37,11 +37,13 @@ G4VPhysicalVolume* CarbonPETDetectorConstruction::Construct() {
   G4LogicalVolume* logicTarget = new G4LogicalVolume(solidTarget, pmma, "Target");
   new G4PVPlacement(0, G4ThreeVector(0, 0, fTargetZ/2), logicTarget, "Target", logicWorld, false, 0);
 
+  logicWorld->SetVisAttributes(G4VisAttributes::GetInvisible());
+  return physWorld;
+}
+
+void CarbonPETDetectorConstruction::ConstructSDandField() {
   auto* scoring = new CarbonPETScoring("TargetScoring");
   scoring->SetVoxelSize(fDoseVoxelSize, fActivityVoxelSize);
   G4SDManager::GetSDMpointer()->AddNewDetector(scoring);
-  logicTarget->SetSensitiveDetector(scoring);
-
-  logicWorld->SetVisAttributes(G4VisAttributes::GetInvisible());
-  return physWorld;
+  SetSensitiveDetector("Target", scoring);
 }

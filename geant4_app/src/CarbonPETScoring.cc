@@ -39,6 +39,12 @@ G4int CarbonPETScoring::GetActivityIndex(const G4ThreeVector& pos) {
 }
 
 G4bool CarbonPETScoring::ProcessHits(G4Step* step, G4TouchableHistory*) {
+  static G4int hitCount = 0;
+  if (hitCount < 5) {
+    G4cout << "ProcessHits called, edep = " << step->GetTotalEnergyDeposit()/MeV << " MeV" << G4endl;
+    ++hitCount;
+  }
+
   G4double edep = step->GetTotalEnergyDeposit();
   if (edep > 0.) {
     G4ThreeVector pos = step->GetPreStepPoint()->GetPosition();
