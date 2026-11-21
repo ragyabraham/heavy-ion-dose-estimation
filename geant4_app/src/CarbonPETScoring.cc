@@ -21,8 +21,7 @@ void CarbonPETScoring::SetVoxelSize(G4double doseVox, G4double actVox) {
 }
 
 void CarbonPETScoring::Initialize(G4HCofThisEvent*) {
-  fDoseMap.clear();
-  fActivityMap.clear();
+  // Do not clear — we accumulate across all events
 }
 
 G4int CarbonPETScoring::GetDoseIndex(const G4ThreeVector& pos) {
