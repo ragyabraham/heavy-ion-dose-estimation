@@ -20,12 +20,14 @@ int main(int argc, char** argv) {
 
   runManager->SetUserInitialization(new CarbonPETActionInitialization());
 
-  auto* visManager = new G4VisExecutive;
-  visManager->Initialize();
-
+  // The Qt viewer is only for an interactive session. A macro run skips
+  // G4VisExecutive so the batch job does not load the Qt driver.
+  G4VisExecutive* visManager = nullptr;
   auto* UImanager = G4UImanager::GetUIpointer();
 
   if (argc == 1) {
+    visManager = new G4VisExecutive;
+    visManager->Initialize();
     auto* ui = new G4UIExecutive(argc, argv);
     UImanager->ApplyCommand("/run/initialize");
     UImanager->ApplyCommand("/tracking/storeTrajectory 1");

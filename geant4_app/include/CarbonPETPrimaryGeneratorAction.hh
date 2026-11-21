@@ -5,6 +5,8 @@
 #include "G4ParticleGun.hh"
 #include "globals.hh"
 
+class G4GenericMessenger;
+
 class CarbonPETPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
 public:
   CarbonPETPrimaryGeneratorAction();
@@ -17,7 +19,9 @@ public:
 
 private:
   G4ParticleGun* fParticleGun;
-  G4double fEnergy;
+  G4GenericMessenger* fMessenger;
+  // Kinetic energy per nucleon. 250 MeV/u is 3000 MeV for 12C.
+  G4double fEnergyPerNucleon;
   G4double fSigmaXY;
   G4double fEnergySpread;
 };

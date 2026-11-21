@@ -46,7 +46,7 @@ public:
   void EndOfRunAction(const G4Run*) override {
     auto* sd = G4SDManager::GetSDMpointer()->FindSensitiveDetector("TargetScoring");
     if (auto* scoring = dynamic_cast<CarbonPETScoring*>(sd)) {
-      scoring->WriteResults("scoring_results.txt");
+      scoring->WriteResults(scoring->GetOutputFile());
     }
   }
 };

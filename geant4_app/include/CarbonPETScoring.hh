@@ -8,6 +8,8 @@
 #include <unordered_set>
 #include <vector>
 
+class G4GenericMessenger;
+
 class CarbonPETScoring : public G4VSensitiveDetector {
 public:
   CarbonPETScoring(const G4String& name);
@@ -19,6 +21,8 @@ public:
 
   void SetVoxelSize(G4double doseVox, G4double actVox);
   void WriteResults(const G4String& filename);
+  void Reset();
+  const G4String& GetOutputFile() const { return fOutputFile; }
 
 private:
   G4int GetDoseIndex(const G4ThreeVector& pos);
@@ -28,6 +32,9 @@ private:
   G4double fDoseVoxel;
   G4double fActVoxel;
   G4double fTargetHalfZ;
+
+  G4GenericMessenger* fMessenger;
+  G4String fOutputFile;
 
   std::map<G4int, G4double> fDoseMap;
   std::map<G4int, G4double> fActivityMap;

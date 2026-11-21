@@ -4,6 +4,7 @@
 #include "G4Track.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4ios.hh"
+#include "G4GenericMessenger.hh"
 #include <fstream>
 #include <cmath>
 #include <algorithm>
@@ -12,9 +13,28 @@ CarbonPETScoring::CarbonPETScoring(const G4String& name)
   : G4VSensitiveDetector(name),
     fDoseVoxel(1.0*mm),
     fActVoxel(1.5*mm),
-    fTargetHalfZ(150*mm) {}
+    fTargetHalfZ(150*mm),
+    fMessenger(nullptr),
+    fOutputFile("scoring_results.txt") {
+  fMessenger = new G4GenericMessenger(this, "/carbon/scoring/", "Scoring output");
+  fMessenger->DeclareProperty(
+      "file", fOutputFile,
+      "File written at the end of each run. Use a name with no spaces.");
+  fMessenger->DeclareMethod(
+      "reset", &CarbonPETScoring::Reset,
+      "Clear dose and activity accumulated so far");
+}
 
-CarbonPETScoring::~CarbonPETScoring() {}
+CarbonPETScoring::~CarbonPETScoring() {
+  delete fMessenger;
+}
+
+void CarbonPETScoring::Reset() {
+  fDoseMap.clear();
+  fActivityMap.clear();
+  fCountedThisEvent.clear();
+  G4cout << "Scoring maps reset. Next run will write " << fOutputFile << G4endl;
+}
 
 void CarbonPETScoring::SetVoxelSize(G4double doseVox, G4double actVox) {
   fDoseVoxel = doseVox;

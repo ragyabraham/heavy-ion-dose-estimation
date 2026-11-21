@@ -1,0 +1,46 @@
+/run/initialize
+/carbon/beam/energySpread 0.002
+/carbon/beam/energyPerNucleon 200
+/carbon/scoring/file scoring_200.txt
+/carbon/scoring/reset
+/run/beamOn 50
+/carbon/beam/energyPerNucleon 215
+/carbon/scoring/file scoring_215.txt
+/carbon/scoring/reset
+/run/beamOn 50
+/carbon/beam/energyPerNucleon 230
+/carbon/scoring/file scoring_230.txt
+/carbon/scoring/reset
+/run/beamOn 50
+/carbon/beam/energyPerNucleon 245
+/carbon/scoring/file scoring_245.txt
+/carbon/scoring/reset
+/run/beamOn 50
+/carbon/beam/energyPerNucleon 260
+/carbon/scoring/file scoring_260.txt
+/carbon/scoring/reset
+/run/beamOn 50
+/carbon/beam/energyPerNucleon 275
+/carbon/scoring/file scoring_275.txt
+/carbon/scoring/reset
+/run/beamOn 50
+/carbon/beam/energyPerNucleon 290
+/carbon/scoring/file scoring_290.txt
+/carbon/scoring/reset
+/run/beamOn 50
+/carbon/beam/energyPerNucleon 305
+/carbon/scoring/file scoring_305.txt
+/carbon/scoring/reset
+/run/beamOn 50
+/carbon/beam/energyPerNucleon 320
+/carbon/scoring/file scoring_320.txt
+/carbon/scoring/reset
+/run/beamOn 50
+/carbon/beam/energyPerNucleon 335
+/carbon/scoring/file scoring_335.txt
+/carbon/scoring/reset
+/run/beamOn 50
+/carbon/beam/energyPerNucleon 350
+/carbon/scoring/file scoring_350.txt
+/carbon/scoring/reset
+/run/beamOn 50
