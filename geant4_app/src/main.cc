@@ -2,6 +2,7 @@
 #include "G4UImanager.hh"
 #include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
+#include "G4Threading.hh"
 #include <fstream>
 
 #include "CarbonPETDetectorConstruction.hh"
@@ -11,7 +12,10 @@
 #include "G4EmStandardPhysics_option4.hh"
 
 int main(int argc, char** argv) {
-  auto* runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::Default);
+  // Force single thread for reliable interactive visualization
+  G4Threading::SetNumberOfThreads(1);
+
+  auto* runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial);
 
   runManager->SetUserInitialization(new CarbonPETDetectorConstruction());
 
@@ -28,19 +32,16 @@ int main(int argc, char** argv) {
 
   if (argc == 1) {
     auto* ui = new G4UIExecutive(argc, argv);
-    // Try to execute init_vis.mac if present; otherwise set up visualization directly
-    std::ifstream f("init_vis.mac");
-    if (f.good()) {
-      UImanager->ApplyCommand("/control/execute init_vis.mac");
-    } else {
-      UImanager->ApplyCommand("/run/initialize");
-      UImanager->ApplyCommand("/vis/open OGL");
-      UImanager->ApplyCommand("/vis/drawVolume");
-      UImanager->ApplyCommand("/vis/viewer/set/viewpointThetaPhi 60 30");
-      UImanager->ApplyCommand("/vis/viewer/zoom 1.5");
-      UImanager->ApplyCommand("/vis/scene/add/axes 0 0 0 100 mm");
-      UImanager->ApplyCommand("/vis/viewer/flush");
-    }
+    UImanager->ApplyCommand("/run/initialize");
+    UImanager->ApplyCommand("/tracking/storeTrajectory 1");
+    UImanager->ApplyCommand("/vis/open OGL");
+    UImanager->ApplyCommand("/vis/drawVolume");
+    UImanager->ApplyCommand("/vis/scene/add/trajectories");
+    UImanager->ApplyCommand("/vis/modeling/trajectories/create/drawByCharge");
+    UImanager->ApplyCommand("/vis/viewer/set/viewpointThetaPhi 60 30");
+    UImanager->ApplyCommand("/vis/viewer/zoom 1.5");
+    UImanager->ApplyCommand("/vis/scene/add/axes 0 0 0 100 mm");
+    UImanager->ApplyCommand("/vis/viewer/flush");
     ui->SessionStart();
     delete ui;
   } else {
