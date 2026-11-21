@@ -20,13 +20,15 @@ CarbonPETPrimaryGeneratorAction::~CarbonPETPrimaryGeneratorAction() {
 }
 
 void CarbonPETPrimaryGeneratorAction::GeneratePrimaries(G4Event* event) {
-  if (!fParticleGun->GetParticleDefinition()) {
-    auto* ionTable = G4ParticleTable::GetParticleTable()->GetIonTable();
-    auto* particle = ionTable->GetIon(6, 12, 0.0);
-    if (!particle) {
-      particle = G4ParticleTable::GetParticleTable()->FindParticle("C12");
-    }
-    fParticleGun->SetParticleDefinition(particle);
+  // G4ParticleGun is constructed as a geantino. A geantino has no processes,
+  // so GetParticleDefinition() is never null and the ion must be set explicitly.
+  auto* ionTable = G4ParticleTable::GetParticleTable()->GetIonTable();
+  auto* particle = ionTable->GetIon(6, 12, 0.0);
+  if (!particle) {
+    particle = G4ParticleTable::GetParticleTable()->FindParticle("C12");
+  }
+  fParticleGun->SetParticleDefinition(particle);
+  if (event->GetEventID() == 0) {
     G4cout << "Primary particle set to: "
            << (particle ? particle->GetParticleName() : "NULL")
            << "  E = " << fEnergy << " MeV" << G4endl;

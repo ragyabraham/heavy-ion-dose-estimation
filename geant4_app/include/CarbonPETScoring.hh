@@ -2,8 +2,10 @@
 #define CarbonPETScoring_h 1
 
 #include "G4VSensitiveDetector.hh"
+#include "G4ThreeVector.hh"
 #include "G4THitsMap.hh"
 #include <map>
+#include <unordered_set>
 #include <vector>
 
 class CarbonPETScoring : public G4VSensitiveDetector {
@@ -21,6 +23,7 @@ public:
 private:
   G4int GetDoseIndex(const G4ThreeVector& pos);
   G4int GetActivityIndex(const G4ThreeVector& pos);
+  G4int Index3D(const G4ThreeVector& pos, G4double voxel) const;
 
   G4double fDoseVoxel;
   G4double fActVoxel;
@@ -28,6 +31,7 @@ private:
 
   std::map<G4int, G4double> fDoseMap;
   std::map<G4int, G4double> fActivityMap;
+  std::unordered_set<G4int> fCountedThisEvent;
 };
 
 #endif

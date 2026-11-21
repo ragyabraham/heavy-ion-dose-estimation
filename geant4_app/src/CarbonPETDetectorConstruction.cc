@@ -28,8 +28,14 @@ G4VPhysicalVolume* CarbonPETDetectorConstruction::Construct() {
   G4NistManager* nist = G4NistManager::Instance();
   G4Material* pmma = nist->FindOrBuildMaterial("G4_PLEXIGLASS");
 
-  G4double worldSize = 1.2 * std::max({fTargetX, fTargetY, fTargetZ});
-  G4Box* solidWorld = new G4Box("World", worldSize/2, worldSize/2, worldSize/2);
+  // Target upstream face is at z = 0 and the block extends to z = fTargetZ.
+  // The beam starts at z = -50 mm. The world must contain both; a box only
+  // 1.2 times the target length leaves the downstream end outside the mother.
+  const G4double margin = 50. * mm;
+  const G4double halfX = 0.5 * fTargetX + margin;
+  const G4double halfY = 0.5 * fTargetY + margin;
+  const G4double halfZ = std::max(100. * mm, fTargetZ + margin);
+  G4Box* solidWorld = new G4Box("World", halfX, halfY, halfZ);
   G4LogicalVolume* logicWorld = new G4LogicalVolume(solidWorld, nist->FindOrBuildMaterial("G4_AIR"), "World");
   G4VPhysicalVolume* physWorld = new G4PVPlacement(0, G4ThreeVector(), logicWorld, "World", 0, false, 0);
 

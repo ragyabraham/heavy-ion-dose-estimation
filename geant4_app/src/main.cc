@@ -2,15 +2,12 @@
 #include "G4UImanager.hh"
 #include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
-#include <fstream>
 
 #include "CarbonPETDetectorConstruction.hh"
 #include "CarbonPETActionInitialization.hh"
-#include "CarbonPETScoring.hh"
 
 #include "QGSP_BIC_HP.hh"
 #include "G4EmStandardPhysics_option4.hh"
-#include "G4SDManager.hh"
 
 int main(int argc, char** argv) {
   auto* runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial);
@@ -45,11 +42,6 @@ int main(int argc, char** argv) {
   } else {
     G4String command = "/control/execute ";
     UImanager->ApplyCommand(command + argv[1]);
-  }
-
-  auto* sd = G4SDManager::GetSDMpointer()->FindSensitiveDetector("TargetScoring");
-  if (auto* scoring = dynamic_cast<CarbonPETScoring*>(sd)) {
-    scoring->WriteResults("scoring_results.txt");
   }
 
   delete visManager;
