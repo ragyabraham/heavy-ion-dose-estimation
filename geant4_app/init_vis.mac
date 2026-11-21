@@ -1,0 +1,10 @@
+# Macro for interactive visualization of the carbon-ion target
+/run/initialize
+/vis/open OGL
+/vis/drawVolume
+/vis/viewer/set/viewpointThetaPhi 60 30
+/vis/viewer/zoom 1.5
+/vis/scene/add/axes 0 0 0 100 mm
+/vis/viewer/set/style surface
+/vis/viewer/set/hiddenMarker true
+/vis/viewer/flush

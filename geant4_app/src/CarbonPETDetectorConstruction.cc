@@ -37,9 +37,6 @@ G4VPhysicalVolume* CarbonPETDetectorConstruction::Construct() {
   G4LogicalVolume* logicTarget = new G4LogicalVolume(solidTarget, pmma, "Target");
   new G4PVPlacement(0, G4ThreeVector(0, 0, fTargetZ/2), logicTarget, "Target", logicWorld, false, 0);
 
-  // Scoring volumes would be attached here via G4MultiFunctionalDetector
-  // (implemented in full version with dose and isotope-specific scorers)
-
   logicWorld->SetVisAttributes(G4VisAttributes::GetInvisible());
   return physWorld;
 }

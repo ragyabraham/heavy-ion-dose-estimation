@@ -13,14 +13,13 @@ public:
   virtual ~CarbonPETDetectorConstruction();
   virtual G4VPhysicalVolume* Construct();
 
-  // Configurable parameters (set from Python or macro)
   void SetTargetSize(G4double x, G4double y, G4double z);
   void SetVoxelSize(G4double doseVoxel, G4double activityVoxel);
 
 private:
-  G4double fTargetX, fTargetY, fTargetZ;  // mm
-  G4double fDoseVoxelSize;                // mm
-  G4double fActivityVoxelSize;            // mm
+  G4double fTargetX, fTargetY, fTargetZ;
+  G4double fDoseVoxelSize;
+  G4double fActivityVoxelSize;
 };
 
 #endif

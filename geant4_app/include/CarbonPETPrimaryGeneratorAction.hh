@@ -11,9 +11,9 @@ public:
   virtual ~CarbonPETPrimaryGeneratorAction();
   virtual void GeneratePrimaries(G4Event*);
 
-  void SetEnergy(G4double energy);          // MeV/u
-  void SetBeamSigma(G4double sigmaXY);      // mm (Gaussian)
-  void SetEnergySpread(G4double sigmaE);    // relative
+  void SetEnergy(G4double energy);
+  void SetBeamSigma(G4double sigmaXY);
+  void SetEnergySpread(G4double sigmaE);
 
 private:
   G4ParticleGun* fParticleGun;
