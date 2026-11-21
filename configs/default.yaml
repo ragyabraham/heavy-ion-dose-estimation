@@ -1,0 +1,18 @@
+# Default configuration matching Rutherford et al. 2022
+energy_mev_u: [200, 215, 230, 245, 260, 275, 290, 305, 320, 335, 350]
+n_primaries: 100000000          # 1e8
+target:
+  material: PMMA
+  size_mm: [100, 100, 300]
+beam:
+  fwhm_mm: 8.0
+  energy_spread: 0.002          # σ = 0.2 %
+scoring:
+  dose_voxel_mm: 1.0
+  activity_voxel_mm: 1.5
+  roi_radius_mm: 12.0           # approx FWTM
+  time_frames: 432              # 5 s bins, 36 min
+output:
+  format: npz                   # or root / hdf5
+  directory: output/raw
+physics_list: QBBC_EMZ          # placeholder for modern equivalent
