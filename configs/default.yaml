@@ -15,4 +15,4 @@ scoring:
 output:
   format: npz                   # or root / hdf5
   directory: output/raw
-physics_list: QBBC_EMZ          # placeholder for modern equivalent
+physics_list: QGSP_BIC_HP_EMZ   # Closest modern equivalent to original paper 
