@@ -5,13 +5,14 @@
 #include "G4IonTable.hh"
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
+#include "G4Event.hh"
+#include "G4ios.hh"
 
 CarbonPETPrimaryGeneratorAction::CarbonPETPrimaryGeneratorAction() {
   fParticleGun = new G4ParticleGun(1);
-  fEnergy = 250;
+  fEnergy = 3000;          // MeV total (~250 MeV/u)
   fSigmaXY = 3.4 * mm;
   fEnergySpread = 0.002;
-  // Particle definition is set in GeneratePrimaries (after physics is ready)
 }
 
 CarbonPETPrimaryGeneratorAction::~CarbonPETPrimaryGeneratorAction() {
@@ -21,18 +22,21 @@ CarbonPETPrimaryGeneratorAction::~CarbonPETPrimaryGeneratorAction() {
 void CarbonPETPrimaryGeneratorAction::GeneratePrimaries(G4Event* event) {
   if (!fParticleGun->GetParticleDefinition()) {
     auto* ionTable = G4ParticleTable::GetParticleTable()->GetIonTable();
-    auto* particle = ionTable->GetIon(6, 12, 0.0);  // Z=6, A=12
+    auto* particle = ionTable->GetIon(6, 12, 0.0);
     if (!particle) {
       particle = G4ParticleTable::GetParticleTable()->FindParticle("C12");
     }
     fParticleGun->SetParticleDefinition(particle);
     fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0, 0, 1));
     fParticleGun->SetParticleEnergy(fEnergy * MeV);
+    G4cout << "Primary particle set to: "
+           << (particle ? particle->GetParticleName() : "NULL")
+           << "  E = " << fEnergy << " MeV" << G4endl;
   }
 
   G4double x = G4RandGauss::shoot(0, fSigmaXY);
   G4double y = G4RandGauss::shoot(0, fSigmaXY);
-  fParticleGun->SetParticlePosition(G4ThreeVector(x, y, -10 * mm));
+  fParticleGun->SetParticlePosition(G4ThreeVector(x, y, -20 * mm));
   fParticleGun->GeneratePrimaryVertex(event);
 }
 
