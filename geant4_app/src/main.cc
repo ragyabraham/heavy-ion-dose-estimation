@@ -2,7 +2,6 @@
 #include "G4UImanager.hh"
 #include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
-#include "G4Threading.hh"
 #include <fstream>
 
 #include "CarbonPETDetectorConstruction.hh"
@@ -12,9 +11,7 @@
 #include "G4EmStandardPhysics_option4.hh"
 
 int main(int argc, char** argv) {
-  // Force single thread for reliable interactive visualization
-  G4Threading::SetNumberOfThreads(1);
-
+  // Serial run manager (single-threaded) for reliable interactive visualization
   auto* runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial);
 
   runManager->SetUserInitialization(new CarbonPETDetectorConstruction());
