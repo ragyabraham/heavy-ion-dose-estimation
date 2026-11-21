@@ -2,6 +2,7 @@
 #define CarbonPETSteppingAction_h 1
 
 #include "G4UserSteppingAction.hh"
+#include "G4ThreeVector.hh"
 #include "globals.hh"
 #include <map>
 
