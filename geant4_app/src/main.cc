@@ -2,6 +2,7 @@
 #include "G4UImanager.hh"
 #include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
+#include <fstream>
 
 #include "CarbonPETDetectorConstruction.hh"
 #include "CarbonPETActionInitialization.hh"
@@ -27,7 +28,19 @@ int main(int argc, char** argv) {
 
   if (argc == 1) {
     auto* ui = new G4UIExecutive(argc, argv);
-    UImanager->ApplyCommand("/control/execute init_vis.mac");
+    // Try to execute init_vis.mac if present; otherwise set up visualization directly
+    std::ifstream f("init_vis.mac");
+    if (f.good()) {
+      UImanager->ApplyCommand("/control/execute init_vis.mac");
+    } else {
+      UImanager->ApplyCommand("/run/initialize");
+      UImanager->ApplyCommand("/vis/open OGL");
+      UImanager->ApplyCommand("/vis/drawVolume");
+      UImanager->ApplyCommand("/vis/viewer/set/viewpointThetaPhi 60 30");
+      UImanager->ApplyCommand("/vis/viewer/zoom 1.5");
+      UImanager->ApplyCommand("/vis/scene/add/axes 0 0 0 100 mm");
+      UImanager->ApplyCommand("/vis/viewer/flush");
+    }
     ui->SessionStart();
     delete ui;
   } else {
