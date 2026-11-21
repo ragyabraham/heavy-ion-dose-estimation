@@ -12,6 +12,7 @@ set(SOURCES
   src/CarbonPETDetectorConstruction.cc
   src/CarbonPETActionInitialization.cc
   src/CarbonPETPrimaryGeneratorAction.cc
+  src/CarbonPETScoring.cc
 )
 
 add_executable(carbon_pet_sim ${SOURCES})
