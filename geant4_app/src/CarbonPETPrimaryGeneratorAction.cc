@@ -27,16 +27,20 @@ void CarbonPETPrimaryGeneratorAction::GeneratePrimaries(G4Event* event) {
       particle = G4ParticleTable::GetParticleTable()->FindParticle("C12");
     }
     fParticleGun->SetParticleDefinition(particle);
-    fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0, 0, 1));
-    fParticleGun->SetParticleEnergy(fEnergy * MeV);
     G4cout << "Primary particle set to: "
            << (particle ? particle->GetParticleName() : "NULL")
            << "  E = " << fEnergy << " MeV" << G4endl;
   }
 
-  G4double x = G4RandGauss::shoot(0, fSigmaXY);
-  G4double y = G4RandGauss::shoot(0, fSigmaXY);
-  fParticleGun->SetParticlePosition(G4ThreeVector(x, y, -20 * mm));
+  // Always force direction and energy
+  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0., 0., 1.));
+  fParticleGun->SetParticleEnergy(fEnergy * MeV);
+
+  // Start clearly upstream of the target (target occupies z = 0 to 300 mm)
+  G4double x = G4RandGauss::shoot(0., fSigmaXY);
+  G4double y = G4RandGauss::shoot(0., fSigmaXY);
+  fParticleGun->SetParticlePosition(G4ThreeVector(x, y, -50. * mm));
+
   fParticleGun->GeneratePrimaryVertex(event);
 }
 
