@@ -7,7 +7,10 @@
 
 CarbonPETPrimaryGeneratorAction::CarbonPETPrimaryGeneratorAction() {
   fParticleGun = new G4ParticleGun(1);
-  auto particle = G4ParticleTable::GetParticleTable()->FindParticle("carbon12");
+  auto particle = G4ParticleTable::GetParticleTable()->FindParticle("C12");
+  if (!particle) {
+    particle = G4ParticleTable::GetParticleTable()->GetIonTable()->GetIon(6, 12, 0);
+  }
   fParticleGun->SetParticleDefinition(particle);
   fParticleGun->SetParticleEnergy(250 * MeV);
   fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0, 0, 1));
