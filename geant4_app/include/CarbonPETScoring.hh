@@ -22,7 +22,13 @@ public:
   void SetVoxelSize(G4double doseVox, G4double actVox);
   void WriteResults(const G4String& filename);
   void Reset();
-  const G4String& GetOutputFile() const { return fOutputFile; }
+  // Workers drop maps cleared by /carbon/scoring/reset, then add their
+  // maps into one store. The master thread writes that store.
+  void ApplyResetEpoch();
+  void MergeToShared();
+  static void BeginRun();
+  static void WriteMerged();
+  const G4String& GetOutputFile() const;
 
 private:
   G4int GetDoseIndex(const G4ThreeVector& pos);
@@ -34,11 +40,11 @@ private:
   G4double fTargetHalfZ;
 
   G4GenericMessenger* fMessenger;
-  G4String fOutputFile;
 
   std::map<G4int, G4double> fDoseMap;
   std::map<G4int, G4double> fActivityMap;
   std::unordered_set<G4int> fCountedThisEvent;
+  G4int fAppliedEpoch;
 };
 
 #endif

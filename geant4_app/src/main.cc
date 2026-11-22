@@ -5,12 +5,28 @@
 
 #include "CarbonPETDetectorConstruction.hh"
 #include "CarbonPETActionInitialization.hh"
+#include "CarbonPETPrimaryGeneratorAction.hh"
+#include "CarbonPETScoring.hh"
 
 #include "QGSP_BIC_HP.hh"
 #include "G4EmStandardPhysics_option4.hh"
+#include "G4ios.hh"
+
+#include <cstdlib>
+#include <thread>
 
 int main(int argc, char** argv) {
-  auto* runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::Serial);
+  auto* runManager = G4RunManagerFactory::CreateRunManager(G4RunManagerType::MT);
+  G4int nThreads = static_cast<G4int>(std::thread::hardware_concurrency());
+  if (const char* env = std::getenv("CARBON_THREADS")) {
+    char* end = nullptr;
+    const long requested = std::strtol(env, &end, 10);
+    if (end != env && requested > 0) nThreads = static_cast<G4int>(requested);
+  }
+  if (nThreads < 1) nThreads = 1;
+  runManager->SetNumberOfThreads(nThreads);
+  G4cout << "Worker threads: " << nThreads
+         << " (override with CARBON_THREADS)" << G4endl;
 
   runManager->SetUserInitialization(new CarbonPETDetectorConstruction());
 
@@ -19,6 +35,13 @@ int main(int argc, char** argv) {
   runManager->SetUserInitialization(physicsList);
 
   runManager->SetUserInitialization(new CarbonPETActionInitialization());
+
+  // Workers start inside /run/initialize and can race a macro that sets the
+  // beam immediately afterwards. Create the messengers on this thread first.
+  static auto* beamCommands = new CarbonPETPrimaryGeneratorAction();
+  static auto* scoringCommands = new CarbonPETScoring("ScoringCommands");
+  (void)beamCommands;
+  (void)scoringCommands;
 
   // The Qt viewer is only for an interactive session. A macro run skips
   // G4VisExecutive so the batch job does not load the Qt driver.

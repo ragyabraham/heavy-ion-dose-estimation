@@ -138,6 +138,10 @@ celerybeat.pid
 *.aof
 *.pid
 
+# Output
+*.png
+*.txt
+
 # RabbitMQ
 mnesia/
 rabbitmq/

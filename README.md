@@ -6,7 +6,7 @@ The beam energy used in the physics is the total kinetic energy. The names and t
 
 ## Requirements
 
-- Geant4 11.3 with the Qt visualization drivers (this machine: `/Users/ragy/geant4-install`)
+- Geant4 11.4.3 with the Qt visualization drivers (this machine: `/Users/ragy/geant4-install`; the previous 11.3.2 tree is `/Users/ragy/geant4-install-11.3.2`)
 - CMake ≥ 3.16 and a C++17 compiler
 - Python 3.11 or newer with `numpy`, `matplotlib`, and `pyyaml` (the system `python3` on this Mac does not have them)
 
@@ -62,7 +62,9 @@ To change the energy before the run, use MeV per nucleon:
 
 `/carbon/scoring/reset` clears the maps. `/carbon/scoring/file` sets the name written at the end of the next run. Use a filename with no spaces.
 
-Radioactive decay is turned off at the start of each run. Geant4 11.3 aborts if a stopped fragment decays into a nucleus that is already in the particle table. Positron emitters (¹¹C, ¹⁰C, ¹⁵O, ¹³N) are counted when they stop.
+Batch and interactive runs use one worker thread per CPU. `CARBON_THREADS` sets that count, for example `CARBON_THREADS=4 ./carbon_pet_sim run.mac`. A macro run does not open the Qt viewer. Each worker scores its own events, and the maps are added together when the run ends.
+
+Radioactive decay is turned off at the start of each run. Positron emitters (¹¹C, ¹⁰C, ¹⁵O, ¹³N) are counted when they stop. Leaving decay on can abort the run when a stopped fragment produces a nucleus that is already in the particle table.
 
 ## Make the maps and figures
 
@@ -111,7 +113,7 @@ That test uses synthetic maps. It does not read `scoring_results.txt`.
 
 ## Layout
 
-- `geant4_app/` — C++ application. The run manager is serial.
+- `geant4_app/` — C++ application. The run manager is multi-threaded.
 - `python_control/` — driver that launches the scan and builds the 2-D maps
 - `validation/` — checks on saved map arrays
 - `visualisation/` — depth-dose and 2-D figures

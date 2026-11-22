@@ -5,6 +5,7 @@
 #include "G4ios.hh"
 #include <fstream>
 #include <cmath>
+#include <atomic>
 
 CarbonPETSteppingAction::CarbonPETSteppingAction()
   : fDoseVoxel(1.0*mm), fTargetHalfZ(150*mm) {}
@@ -29,10 +30,9 @@ void CarbonPETSteppingAction::UserSteppingAction(const G4Step* step) {
   G4int idx = GetDoseIndex(pos);
   fDoseMap[idx] += edep;
 
-  static G4int printed = 0;
-  if (printed < 3) {
+  static std::atomic<G4int> printed{0};
+  if (printed.fetch_add(1) < 3) {
     G4cout << "SteppingAction scored " << edep/MeV << " MeV at z = " << pos.z()/mm << " mm" << G4endl;
-    ++printed;
   }
 }
 

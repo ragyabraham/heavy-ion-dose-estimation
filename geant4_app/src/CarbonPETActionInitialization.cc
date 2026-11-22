@@ -8,6 +8,7 @@
 #include "G4ProcessTable.hh"
 #include "G4VRadioactiveDecay.hh"
 #include "G4HadronicParameters.hh"
+#include "G4Threading.hh"
 
 namespace {
 
@@ -37,15 +38,29 @@ void DisableRadioactiveDecay() {
          << G4endl;
 }
 
+CarbonPETScoring* FindScoring() {
+  auto* sd = G4SDManager::GetSDMpointer()->FindSensitiveDetector("TargetScoring");
+  return dynamic_cast<CarbonPETScoring*>(sd);
+}
+
 class CarbonPETRunAction : public G4UserRunAction {
 public:
   void BeginOfRunAction(const G4Run*) override {
     DisableRadioactiveDecay();
+    if (G4Threading::IsMasterThread()) CarbonPETScoring::BeginRun();
+    if (auto* scoring = FindScoring()) scoring->ApplyResetEpoch();
   }
 
   void EndOfRunAction(const G4Run*) override {
-    auto* sd = G4SDManager::GetSDMpointer()->FindSensitiveDetector("TargetScoring");
-    if (auto* scoring = dynamic_cast<CarbonPETScoring*>(sd)) {
+    if (G4Threading::IsMultithreadedApplication()) {
+      if (G4Threading::IsMasterThread()) {
+        CarbonPETScoring::WriteMerged();
+      } else if (auto* scoring = FindScoring()) {
+        scoring->MergeToShared();
+      }
+      return;
+    }
+    if (auto* scoring = FindScoring()) {
       scoring->WriteResults(scoring->GetOutputFile());
     }
   }
@@ -53,7 +68,9 @@ public:
 
 }
 
-void CarbonPETActionInitialization::BuildForMaster() const {}
+void CarbonPETActionInitialization::BuildForMaster() const {
+  SetUserAction(new CarbonPETRunAction);
+}
 
 void CarbonPETActionInitialization::Build() const {
   SetUserAction(new CarbonPETPrimaryGeneratorAction);

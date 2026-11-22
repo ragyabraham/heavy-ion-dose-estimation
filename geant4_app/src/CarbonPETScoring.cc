@@ -8,6 +8,50 @@
 #include <fstream>
 #include <cmath>
 #include <algorithm>
+#include <mutex>
+
+namespace {
+
+std::mutex& ScoringMutex() {
+  static std::mutex mutex;
+  return mutex;
+}
+
+struct SharedScore {
+  std::map<G4int, G4double> dose;
+  std::map<G4int, G4double> activity;
+  G4String file{"scoring_results.txt"};
+  G4int epoch = 0;
+  G4int runId = 0;
+  G4int mergeRun = -1;
+  G4GenericMessenger* messenger = nullptr;
+};
+
+SharedScore& Shared() {
+  static SharedScore shared;
+  return shared;
+}
+
+void WriteMaps(const G4String& filename,
+               const std::map<G4int, G4double>& dose,
+               const std::map<G4int, G4double>& activity) {
+  std::ofstream out(filename);
+  out << "# dose_index dose_MeV\n";
+  for (const auto& entry : dose) {
+    out << entry.first << " " << entry.second / MeV << "\n";
+  }
+  out << "# activity_index counts\n";
+  for (const auto& entry : activity) {
+    out << entry.first << " " << entry.second << "\n";
+  }
+  G4double totalDose = 0.;
+  for (const auto& entry : dose) totalDose += entry.second;
+  G4cout << "Wrote " << dose.size() << " dose voxels ("
+         << totalDose / MeV << " MeV total) and " << activity.size()
+         << " activity voxels to " << filename << G4endl;
+}
+
+}
 
 CarbonPETScoring::CarbonPETScoring(const G4String& name)
   : G4VSensitiveDetector(name),
@@ -15,25 +59,87 @@ CarbonPETScoring::CarbonPETScoring(const G4String& name)
     fActVoxel(1.5*mm),
     fTargetHalfZ(150*mm),
     fMessenger(nullptr),
-    fOutputFile("scoring_results.txt") {
-  fMessenger = new G4GenericMessenger(this, "/carbon/scoring/", "Scoring output");
-  fMessenger->DeclareProperty(
-      "file", fOutputFile,
-      "File written at the end of each run. Use a name with no spaces.");
-  fMessenger->DeclareMethod(
-      "reset", &CarbonPETScoring::Reset,
-      "Clear dose and activity accumulated so far");
+    fAppliedEpoch(0) {
+  // Master and every worker construct a detector. The command is registered once.
+  std::lock_guard<std::mutex> lock(ScoringMutex());
+  auto& shared = Shared();
+  if (shared.messenger == nullptr) {
+    fMessenger = new G4GenericMessenger(this, "/carbon/scoring/", "Scoring output");
+    fMessenger->DeclareProperty(
+        "file", shared.file,
+        "File written at the end of each run. Use a name with no spaces.");
+    fMessenger->DeclareMethod(
+        "reset", &CarbonPETScoring::Reset,
+        "Clear dose and activity accumulated so far");
+    shared.messenger = fMessenger;
+  }
 }
 
 CarbonPETScoring::~CarbonPETScoring() {
   delete fMessenger;
 }
 
+const G4String& CarbonPETScoring::GetOutputFile() const {
+  return Shared().file;
+}
+
 void CarbonPETScoring::Reset() {
   fDoseMap.clear();
   fActivityMap.clear();
   fCountedThisEvent.clear();
-  G4cout << "Scoring maps reset. Next run will write " << fOutputFile << G4endl;
+  std::lock_guard<std::mutex> lock(ScoringMutex());
+  auto& shared = Shared();
+  shared.dose.clear();
+  shared.activity.clear();
+  ++shared.epoch;
+  fAppliedEpoch = shared.epoch;
+  G4cout << "Scoring maps reset. Next run will write " << shared.file << G4endl;
+}
+
+void CarbonPETScoring::ApplyResetEpoch() {
+  G4int epoch = 0;
+  {
+    std::lock_guard<std::mutex> lock(ScoringMutex());
+    epoch = Shared().epoch;
+  }
+  if (fAppliedEpoch == epoch) return;
+  fDoseMap.clear();
+  fActivityMap.clear();
+  fCountedThisEvent.clear();
+  fAppliedEpoch = epoch;
+}
+
+void CarbonPETScoring::BeginRun() {
+  std::lock_guard<std::mutex> lock(ScoringMutex());
+  auto& shared = Shared();
+  ++shared.runId;
+  shared.mergeRun = -1;
+}
+
+void CarbonPETScoring::MergeToShared() {
+  std::lock_guard<std::mutex> lock(ScoringMutex());
+  auto& shared = Shared();
+  if (shared.mergeRun != shared.runId) {
+    shared.dose.clear();
+    shared.activity.clear();
+    shared.mergeRun = shared.runId;
+  }
+  for (const auto& entry : fDoseMap) shared.dose[entry.first] += entry.second;
+  for (const auto& entry : fActivityMap) shared.activity[entry.first] += entry.second;
+}
+
+void CarbonPETScoring::WriteMerged() {
+  std::map<G4int, G4double> dose;
+  std::map<G4int, G4double> activity;
+  G4String filename;
+  {
+    std::lock_guard<std::mutex> lock(ScoringMutex());
+    auto& shared = Shared();
+    dose = shared.dose;
+    activity = shared.activity;
+    filename = shared.file;
+  }
+  WriteMaps(filename, dose, activity);
 }
 
 void CarbonPETScoring::SetVoxelSize(G4double doseVox, G4double actVox) {
@@ -106,19 +212,5 @@ G4bool CarbonPETScoring::ProcessHits(G4Step* step, G4TouchableHistory*) {
 void CarbonPETScoring::EndOfEvent(G4HCofThisEvent*) {}
 
 void CarbonPETScoring::WriteResults(const G4String& filename) {
-  std::ofstream out(filename);
-  out << "# dose_index dose_MeV\n";
-  for (const auto& p : fDoseMap) {
-    out << p.first << " " << p.second / MeV << "\n";
-  }
-  out << "# activity_index counts\n";
-  for (const auto& p : fActivityMap) {
-    out << p.first << " " << p.second << "\n";
-  }
-  out.close();
-  G4double totalDose = 0.;
-  for (const auto& p : fDoseMap) totalDose += p.second;
-  G4cout << "Wrote " << fDoseMap.size() << " dose voxels ("
-         << totalDose / MeV << " MeV total) and " << fActivityMap.size()
-         << " activity voxels to " << filename << G4endl;
+  WriteMaps(filename, fDoseMap, fActivityMap);
 }
